@@ -9,7 +9,7 @@ import SwiftUI
 import MapKit
 
 struct MapView: View {
-    @StateObject var vm = MapViewModel()
+    @EnvironmentObject var vm: MapViewModel
     @EnvironmentObject var route: NavigationRouter
     
     var body: some View {
@@ -30,7 +30,7 @@ struct MapView: View {
                                 .clipShape(Circle())
                         }
                         .onTapGesture {
-                            vm.selectedPlace = place
+                            vm.selectedPlaceId = place.id
                             vm.showPlaceDetail = true
                         }
                     }
@@ -42,14 +42,20 @@ struct MapView: View {
                 MapPitchToggle()
             }
             .sheet(isPresented: $vm.showPlaceDetail, onDismiss: {
-                vm.selectedPlace = nil
-                if vm.shouldNavigateToAddReview {
+                if vm.shouldAddReview {
                     route.navigate(to: .addReview)
-                    vm.shouldNavigateToAddReview = false
+                    vm.shouldAddReview = false
                 }
             }) {
                 PlaceDetailSheet(vm: vm)
-                    .presentationDetents([.fraction(0.5)])
+                    .presentationDetents([.fraction(0.4)])
+            }
+            .onAppear() {
+                print("取得したPlaceの個数(全部で12個) 現在：\(vm.places.count)個")
+                if let selectedPlaceId = vm.selectedPlaceId,
+                   let selectedPlace = vm.places.first(where: { $0.id == selectedPlaceId }) {
+                    print("\(selectedPlace.name)のレビューは現在\(selectedPlace.reviews.count)個です")
+                }
             }
     }
 }

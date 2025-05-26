@@ -14,7 +14,9 @@ struct PlaceDetailSheet: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if let selectedPlace = vm.selectedPlace {
+            if let selectedPlaceId = vm.selectedPlaceId,
+               let selectedPlace = vm.places.first(where: { $0.id == selectedPlaceId }) {
+                
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(selectedPlace.name)
@@ -30,11 +32,32 @@ struct PlaceDetailSheet: View {
                     
                     Button(action: {
                         dismiss()
-                        vm.shouldNavigateToAddReview = true
+                        vm.shouldAddReview = true
                     }) {
-                        Text("投稿する")
+                        Text("+投稿する")
                     }
                 }
+                
+                
+                Divider()
+                    .padding(.vertical)
+                
+                if selectedPlace.reviews.isEmpty {
+                    Text("レビューはまだありません")
+                        .foregroundColor(.secondary)
+                        .padding(.vertical, 16)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(selectedPlace.reviews, id: \.id) { review in
+                                ReviewCard(review: review, vm: vm)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                
             } else {
                 Text("店舗を選択してください")
                     .foregroundColor(.secondary)
@@ -42,15 +65,8 @@ struct PlaceDetailSheet: View {
                     .frame(maxWidth: .infinity, alignment: .center)
             }
             
-            Divider()
-            
-            Text("まだレビューがありません")
-                .foregroundColor(.secondary)
-                .padding(.vertical, 16)
-                .frame(maxWidth: .infinity, alignment: .center)
-            
         }
-        .padding(.horizontal)
+        .padding()
     }
 }
 

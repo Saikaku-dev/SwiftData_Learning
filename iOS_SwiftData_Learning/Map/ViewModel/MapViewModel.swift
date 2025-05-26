@@ -19,8 +19,8 @@ class MapViewModel: ObservableObject {
         )
     )
     @Published var showPlaceDetail: Bool = false
-    @Published var selectedPlace:PlaceModel?
-    @Published var shouldNavigateToAddReview: Bool = false
+    @Published var shouldAddReview: Bool = false
+    @Published var selectedPlaceId: UUID?
     
     init() {
         loadPlaces()
@@ -28,5 +28,16 @@ class MapViewModel: ObservableObject {
     
     func loadPlaces() {
         self.places = PlacesManager.shared.loadPlaceData()
+    }
+    
+    func loadImageFromDisk(fileName: String) -> UIImage? {
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
+        return UIImage(contentsOfFile: url.path)
+    }
+    
+    func dateString(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd HH:mm"
+        return formatter.string(from: date)
     }
 }

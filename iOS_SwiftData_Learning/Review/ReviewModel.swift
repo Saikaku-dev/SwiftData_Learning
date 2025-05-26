@@ -7,14 +7,13 @@
 
 import Foundation
 
-struct ReviewModel {
+struct ReviewModel: Decodable {
     let id = UUID()
     let title: String
     let content: String
     let photoFileName: String?
     let rating: Int
     var createdAt: Date
-    var reviews:[ReviewModel] = []
     
     init(title: String, content: String, photoFileName: String?, rating: Int, createdAt: Date) {
         self.title = title
