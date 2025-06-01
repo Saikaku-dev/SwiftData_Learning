@@ -4,6 +4,7 @@ struct AddReviewView: View {
     @ObservedObject var vm: AddReviewViewModel
     @EnvironmentObject var router: NavigationRouter
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var focused: Bool
     
     var body: some View {
         NavigationView {
@@ -46,6 +47,7 @@ struct AddReviewView: View {
                             .font(.headline)
                         TextField("レビューのタイトルを入力", text: $vm.title)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .focused($focused)
                     }
                     
                     // 内容
@@ -57,6 +59,7 @@ struct AddReviewView: View {
                             .padding(8)
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
+                            .focused($focused)
                     }
                     
                     // 照片
@@ -135,6 +138,9 @@ struct AddReviewView: View {
                     }
                 }
                 .padding()
+                .onTapGesture {
+                    focused = false
+                }
             }
             .navigationTitle("レビュー投稿")
             .navigationBarTitleDisplayMode(.inline)
