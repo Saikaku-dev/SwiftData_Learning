@@ -6,3 +6,10 @@
 //
 
 import Foundation
+import CoreLocation
+
+protocol LocationRepository {
+    func getCurrentLocation() async throws -> CLLocation
+    func requestLocationPermission()
+    func isLocationPermissionGranted() -> Bool
+}

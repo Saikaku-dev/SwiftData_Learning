@@ -31,6 +31,7 @@ struct iOS_SwiftData_LearningApp: App {
                                 .environmentObject(router)
                             } else {
                                 Text("店舗が選択されていません")
+                                    .foregroundColor(.secondary)
                             }
                         }
                     }

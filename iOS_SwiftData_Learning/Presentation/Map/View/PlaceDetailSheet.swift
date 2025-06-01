@@ -34,7 +34,7 @@ struct PlaceDetailSheet: View {
                         dismiss()
                         vm.shouldAddReview = true
                     }) {
-                        HStack(spacing: 0) {
+                        HStack(alignment: .center, spacing: 2) {
                             Image(systemName: "plus.app")
                             Text("投稿")
                         }

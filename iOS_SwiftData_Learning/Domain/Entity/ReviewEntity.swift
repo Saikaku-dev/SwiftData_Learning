@@ -7,15 +7,16 @@
 
 import Foundation
 
-struct ReviewEntity: Codable {
-    let id = UUID()
+struct ReviewEntity: Identifiable, Codable {
+    let id: UUID
     let title: String
     let content: String
     let photoFileName: String?
     let rating: Int
-    var createdAt: Date
+    let createdAt: Date
     
-    init(title: String, content: String, photoFileName: String?, rating: Int, createdAt: Date) {
+    init(id: UUID = UUID(), title: String, content: String, photoFileName: String?, rating: Int, createdAt: Date) {
+        self.id = id
         self.title = title
         self.content = content
         self.photoFileName = photoFileName

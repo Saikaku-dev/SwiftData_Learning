@@ -1,182 +1,169 @@
-//
-//  AddReview.swift
-//  iOS_SwiftData_Learning
-//
-//  Created by cmStudent on 2025/05/26.
-//
-
 import SwiftUI
-import PhotosUI
 
 struct AddReviewView: View {
-    @StateObject var vm: AddReviewViewModel
-    @FocusState private var focusedField: Field?
-    enum Field { case title, content }
-    @State private var imagePickerSource: UIImagePickerController.SourceType = .photoLibrary
-    @State private var showPhotoSourceDialog: Bool = false
+    @ObservedObject var vm: AddReviewViewModel
+    @EnvironmentObject var router: NavigationRouter
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        VStack {
-            if let place = vm.currentPlace {
-                Text(place.name)
-                HStack {
-                    Image(systemName: "textformat")
-                        .foregroundColor(.accentColor)
-                    TextField("タイトル", text: $vm.title)
-                        .focused($focusedField, equals: .title)
-                }
-                .inputRowStyle()
-                
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "doc.text")
-                        .foregroundColor(.accentColor)
-                        .padding(.top, 8)
-                    TextEditor(text: $vm.content)
-                        .frame(height: 100)
-                        .focused($focusedField, equals: .content)
-                }
-                .inputRowStyle()
-                
-                HStack(spacing: 4) {
-                    Text("評価：")
-                        .font(.headline)
-                    ForEach(1...5, id: \ .self) { star in
-                        Image(systemName: vm.rating >= star ? "star.fill" : "star")
-                            .foregroundColor(.yellow)
-                            .font(.title2)
-                            .onTapGesture {
-                                vm.rating = star
-                            }
-                    }
-                }
-                
-                if vm.photos.isEmpty {
-                    Button(action: {
-                        showPhotoSourceDialog = true
-                    }) {
-                        VStack {
-                            Image(systemName: "plus.app")
-                                .font(.system(size: 40))
-                                .foregroundColor(.accentColor)
-                            Text("写真を追加")
-                                .foregroundColor(.accentColor)
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // 地点信息
+                    if let place = vm.currentPlace {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(place.name)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            Text(place.category)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
-                        .frame(maxWidth: .infinity, minHeight: 120)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(style: StrokeStyle(lineWidth: 2, dash: [8]))
-                                .foregroundColor(Color.accentColor)
-                        )
-                        .confirmationDialog("写真の追加方法を選択", isPresented: $showPhotoSourceDialog, titleVisibility: .visible) {
-                            Button("カメラで撮影") {
-                                imagePickerSource = .camera
-                                vm.showCameraPicker = true
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                    }
+                    
+                    // 评分
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("評価")
+                            .font(.headline)
+                        HStack {
+                            ForEach(1...5, id: \.self) { star in
+                                Image(systemName: star <= vm.rating ? "star.fill" : "star")
+                                    .foregroundColor(star <= vm.rating ? .yellow : .gray)
+                                    .onTapGesture {
+                                        vm.rating = star
+                                    }
                             }
-                            Button("フォトライブラリから選択") {
-                                imagePickerSource = .photoLibrary
-                                vm.showImagePicker = true
-                            }
-                            Button("キャンセル", role: .cancel) {}
                         }
                     }
-                    .padding(.vertical, 8)
-                } else {
-                    Text("選択した写真：")
-                        .font(.headline)
-                        .padding(.leading, 4)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            ForEach(Array(vm.photos.enumerated()), id: \ .offset) { index, image in
-                                ZStack(alignment: .topTrailing) {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .frame(width: 110, height: 110)
-                                        .aspectRatio(contentMode: .fill)
-                                        .background(Color(.systemGray6))
-                                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                                        .shadow(radius: 2)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 14)
-                                                .stroke(vm.selectedPhotoIndices.contains(index) ? Color.accentColor : Color.clear, lineWidth: 3)
-                                        )
-                                        .onTapGesture {
-                                            if vm.selectedPhotoIndices.contains(index) {
-                                                vm.selectedPhotoIndices.remove(index)
-                                            } else {
-                                                vm.selectedPhotoIndices.insert(index)
-                                            }
+                    
+                    // 标题
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("タイトル")
+                            .font(.headline)
+                        TextField("レビューのタイトルを入力", text: $vm.title)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    // 内容
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("内容")
+                            .font(.headline)
+                        TextEditor(text: $vm.content)
+                            .frame(minHeight: 100)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                    }
+                    
+                    // 照片
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("写真")
+                                .font(.headline)
+                            Spacer()
+                            Text("\(vm.photos.count)/3")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                // 添加照片按钮
+                                if vm.photos.count < 3 {
+                                    Menu {
+                                        Button("カメラ") {
+                                            vm.showCameraPicker = true
                                         }
-                                    if vm.selectedPhotoIndices.contains(index) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.accentColor)
-                                            .padding(6)
+                                        Button("フォトライブラリ") {
+                                            vm.showImagePicker = true
+                                        }
+                                    } label: {
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(Color(.systemGray5))
+                                            .frame(width: 80, height: 80)
+                                            .overlay {
+                                                Image(systemName: "plus")
+                                                    .font(.title2)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                    }
+                                }
+                                
+                                // 已选择的照片
+                                ForEach(Array(vm.photos.enumerated()), id: \.offset) { index, photo in
+                                    ZStack(alignment: .topTrailing) {
+                                        Image(uiImage: photo)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 80, height: 80)
+                                            .clipped()
+                                            .cornerRadius(8)
+                                            .onTapGesture {
+                                                if vm.selectedPhotoIndices.contains(index) {
+                                                    vm.selectedPhotoIndices.remove(index)
+                                                } else {
+                                                    vm.selectedPhotoIndices.insert(index)
+                                                }
+                                            }
+                                            .overlay {
+                                                if vm.selectedPhotoIndices.contains(index) {
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .fill(Color.blue.opacity(0.3))
+                                                }
+                                            }
+                                        
+                                        if vm.selectedPhotoIndices.contains(index) {
+                                            Button {
+                                                vm.selectedPhotoIndices.insert(index)
+                                                vm.deleteSelectedPhotos()
+                                            } label: {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .foregroundColor(.red)
+                                                    .background(Color.white, in: Circle())
+                                            }
+                                            .offset(x: 5, y: -5)
+                                        }
                                     }
                                 }
                             }
+                            .padding(.horizontal)
                         }
-                        .padding(.vertical, 4)
                     }
-                    Button(action: {
-                        vm.deleteSelectedPhotos()
-                    }) {
-                        Label("Delete Selected Photos", systemImage: "trash")
-                            .foregroundColor(.white)
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 16)
-                            .background(vm.selectedPhotoIndices.isEmpty ? Color(.systemGray3) : Color.red)
-                            .cornerRadius(8)
-                    }
-                    .disabled(vm.selectedPhotoIndices.isEmpty)
-                    .padding(.leading, 4)
                 }
-                Button(action: {
-                    // MARK: 保存処理
-                    vm.saveReview()
-                    dismiss()
-                }) {
-                    Text("保存してアップロード")
+                .padding()
+            }
+            .navigationTitle("レビュー投稿")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("投稿") {
+                        vm.saveReview()
+                        router.goBack()
+                    }
+                    .disabled(!vm.isFormValid || vm.isLoading)
                 }
             }
-        }
-        .fullScreenCover(isPresented: $vm.showCameraPicker) {
-            ImagePicker(sourceType: .camera) { img in
-                if let img = img {
-                    vm.addPhoto(img)
-                }
-                vm.showCameraPicker = false
-            }
-            .ignoresSafeArea()
         }
         .sheet(isPresented: $vm.showImagePicker) {
-            ImagePicker(sourceType: .photoLibrary) { img in
-                if let img = img {
-                    vm.addPhoto(img)
-                }
-            }
+            ImagePicker(selectedImage: { image in
+                vm.addPhoto(image)
+            })
         }
-        .onTapGesture {
-            focusedField = nil
+        .sheet(isPresented: $vm.showCameraPicker) {
+            ImagePicker(sourceType: .camera, selectedImage: { image in
+                vm.addPhoto(image)
+            })
         }
-    }
-}
-
-extension View {
-    func inputRowStyle() -> some View {
-        self
-            .padding()
-            .background()
-            .cornerRadius(8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(.systemGray5), lineWidth: 1)
-            )
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
-            .shadow(color: Color(.systemGray4), radius: 2, x: 0, y: 1)
     }
 }
 
 #Preview {
-    AddReviewView(vm: AddReviewViewModel(mapViewModel: MapViewModel(), placeId: UUID()))
+    AddReviewView(vm: AddReviewViewModel(
+        mapViewModel: MapViewModel(),
+        placeId: UUID()
+    ))
 }

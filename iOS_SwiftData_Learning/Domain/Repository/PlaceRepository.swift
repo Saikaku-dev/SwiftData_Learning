@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+protocol PlaceRepository {
+    func getAllPlaces() -> [PlaceEntity]
+    func getPlace(by id: UUID) -> PlaceEntity?
+    func savePlaces(_ places: [PlaceEntity])
+}

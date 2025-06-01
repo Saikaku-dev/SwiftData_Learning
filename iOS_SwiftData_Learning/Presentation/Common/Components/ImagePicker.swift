@@ -1,44 +1,40 @@
-//
-//  ImagePicker.swift
-//  iOS_SwiftData_Learning
-//
-//  Created by cmStudent on 2025/05/26.
-//
-
-
 import SwiftUI
 import UIKit
 
 struct ImagePicker: UIViewControllerRepresentable {
     var sourceType: UIImagePickerController.SourceType = .photoLibrary
-    var completion: (UIImage?) -> Void
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
+    let selectedImage: (UIImage) -> Void
+    @Environment(\.dismiss) private var dismiss
+    
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = sourceType
         picker.delegate = context.coordinator
         return picker
     }
-
+    
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-
-    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let parent: ImagePicker
+        
         init(_ parent: ImagePicker) {
             self.parent = parent
         }
+        
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            let image = info[.originalImage] as? UIImage
-            parent.completion(image)
-            picker.dismiss(animated: true)
+            if let image = info[.originalImage] as? UIImage {
+                parent.selectedImage(image)
+            }
+            parent.dismiss()
         }
+        
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            parent.completion(nil)
-            picker.dismiss(animated: true)
+            parent.dismiss()
         }
     }
-} 
+}

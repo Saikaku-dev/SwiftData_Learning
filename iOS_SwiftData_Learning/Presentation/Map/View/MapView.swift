@@ -13,7 +13,7 @@ struct MapView: View {
     @EnvironmentObject var route: NavigationRouter
     
     var body: some View {
-            Map(position: $vm.cameraPostion) {
+            Map(position: $vm.cameraPosition) {
                 UserAnnotation()
                 ForEach(vm.places) { place in
                     Annotation(
@@ -49,13 +49,6 @@ struct MapView: View {
             }) {
                 PlaceDetailSheet(vm: vm)
                     .presentationDetents([.fraction(0.4)])
-            }
-            .onAppear() {
-                print("取得したPlaceの個数(全部で12個) 現在：\(vm.places.count)個")
-                if let selectedPlaceId = vm.selectedPlaceId,
-                   let selectedPlace = vm.places.first(where: { $0.id == selectedPlaceId }) {
-                    print("\(selectedPlace.name)のレビューは現在\(selectedPlace.reviews.count)個です")
-                }
             }
     }
 }

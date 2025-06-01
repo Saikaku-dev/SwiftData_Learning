@@ -8,23 +8,22 @@
 
 import Foundation
 
-class PlaceRepositoryImpl {
-    static let shared = PlaceRepositoryImpl()
+class PlaceRepositoryImpl: PlaceRepository {
+    private let localDataSource: LocalPlaceDataSource
     
-    func loadPlaceData() -> [PlaceEntity] {
-        guard let path = Bundle.main.url(forResource: "Places", withExtension: "json") else {
-            print("PATHが見つかりません。")
-            return []
-        }
-        
-        do {
-            let data = try Data(contentsOf: path)
-            let decoder = JSONDecoder()
-            let decodeResult = try decoder.decode([PlaceEntity].self, from: data)
-            return decodeResult
-        } catch {
-            print("データが見つかりません。\(error.localizedDescription)")
-            return []
-        }
+    init(localDataSource: LocalPlaceDataSource = LocalPlaceDataSource()) {
+        self.localDataSource = localDataSource
+    }
+    
+    func getAllPlaces() -> [PlaceEntity] {
+        return localDataSource.loadPlaces()
+    }
+    
+    func getPlace(by id: UUID) -> PlaceEntity? {
+        return localDataSource.loadPlaces().first { $0.id == id }
+    }
+    
+    func savePlaces(_ places: [PlaceEntity]) {
+        localDataSource.savePlaces(places)
     }
 }
