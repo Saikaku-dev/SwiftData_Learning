@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ReviewModel: Decodable {
+struct ReviewModel: Codable {
     let id = UUID()
     let title: String
     let content: String

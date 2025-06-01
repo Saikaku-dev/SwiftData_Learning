@@ -56,8 +56,14 @@ class AddReviewViewModel: ObservableObject {
             rating: rating,
             createdAt: Date()
         )
+        
+        // 保存到内存
         if let index = mapViewModel.places.firstIndex(where: { $0.id == placeId }) {
             mapViewModel.places[index].reviews.append(review)
+            
+            // 保存该地点的所有reviews到文件
+            let allReviews = mapViewModel.places[index].reviews
+            saveReviewsForPlace(placeId: placeId, reviews: allReviews)
         }
     }
 
@@ -69,5 +75,78 @@ class AddReviewViewModel: ObservableObject {
             return fileName
         }
         return nil
+    }
+    
+    // 保存单个review到本地文件
+    func saveReviewToDisk(review: ReviewModel) -> String? {
+        let fileName = "review_\(review.id.uuidString).json"
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
+        
+        do {
+            let data = try JSONEncoder().encode(review)
+            try data.write(to: url)
+            return fileName
+        } catch {
+            print("保存review失败: \(error)")
+            return nil
+        }
+    }
+    
+    // 从本地文件读取review
+    func loadReviewFromDisk(fileName: String) -> ReviewModel? {
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
+        
+        do {
+            let data = try Data(contentsOf: url)
+            let review = try JSONDecoder().decode(ReviewModel.self, from: data)
+            return review
+        } catch {
+            print("读取review失败: \(error)")
+            return nil
+        }
+    }
+    
+    // 保存所有reviews到一个文件
+    func saveAllReviewsToDisk(reviews: [ReviewModel]) -> Bool {
+        let fileName = "all_reviews.json"
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
+        
+        do {
+            let data = try JSONEncoder().encode(reviews)
+            try data.write(to: url)
+            return true
+        } catch {
+            print("保存所有reviews失败: \(error)")
+            return false
+        }
+    }
+    
+    // 从本地文件读取所有reviews
+    func loadAllReviewsFromDisk() -> [ReviewModel] {
+        let fileName = "all_reviews.json"
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
+        
+        do {
+            let data = try Data(contentsOf: url)
+            let reviews = try JSONDecoder().decode([ReviewModel].self, from: data)
+            return reviews
+        } catch {
+            print("读取所有reviews失败: \(error)")
+            return []
+        }
+    }
+    
+    // 为特定地点保存reviews
+    func saveReviewsForPlace(placeId: UUID, reviews: [ReviewModel]) {
+        let fileName = "reviews_\(placeId.uuidString).json"
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
+        
+        do {
+            let data = try JSONEncoder().encode(reviews)
+            try data.write(to: url)
+            print("地点 \(placeId) 的reviews保存成功")
+        } catch {
+            print("保存地点 \(placeId) 的reviews失败: \(error)")
+        }
     }
 }
