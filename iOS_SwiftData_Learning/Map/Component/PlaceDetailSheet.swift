@@ -27,18 +27,19 @@ struct PlaceDetailSheet: View {
                                 .foregroundColor(.accentColor)
                         }
                     }
-                    
                     Spacer()
-                    
+                }
+                .overlay(alignment: .topTrailing) {
                     Button(action: {
                         dismiss()
                         vm.shouldAddReview = true
                     }) {
-                        Text("+投稿する")
+                        HStack(spacing: 0) {
+                            Image(systemName: "plus.app")
+                            Text("投稿")
+                        }
                     }
                 }
-                
-                
                 Divider()
                     .padding(.vertical)
                 
@@ -64,7 +65,6 @@ struct PlaceDetailSheet: View {
                     .padding(.vertical, 16)
                     .frame(maxWidth: .infinity, alignment: .center)
             }
-            
         }
         .padding()
     }
