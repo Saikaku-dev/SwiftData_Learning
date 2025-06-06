@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  iOS_SwiftData_Learning
-//
-//  Created by cmStudent on 2025/05/26.
-//
-
 import SwiftUI
 import MapKit
 
@@ -23,11 +16,24 @@ struct MapView: View {
                             longitude: place.longitude)
                     ) {
                         VStack {
-                            Image(systemName: "mappin.circle.fill")
-                                .font(.title)
-                                .foregroundColor(.red)
-                                .background(Color.white)
-                                .clipShape(Circle())
+                            // 使用自定义图片或默认图标
+                            if let customImage = vm.getImageForPlace(place.id) {
+                                Image(uiImage: customImage)
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .clipShape(Circle())
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.white, lineWidth: 2)
+                                    )
+                                    .shadow(radius: 3)
+                            } else {
+                                Image(systemName: "mappin.circle.fill")
+                                    .font(.title)
+                                    .foregroundColor(.red)
+                                    .background(Color.white)
+                                    .clipShape(Circle())
+                            }
                         }
                         .onTapGesture {
                             vm.selectedPlaceId = place.id

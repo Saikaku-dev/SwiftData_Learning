@@ -1,6 +1,7 @@
 import Foundation
 import MapKit
 import SwiftUI
+import PhotosUI
 
 class MapViewModel: ObservableObject {
     @Published var places: [PlaceEntity] = []
@@ -13,6 +14,12 @@ class MapViewModel: ObservableObject {
     @Published var showPlaceDetail: Bool = false
     @Published var shouldAddReview: Bool = false
     @Published var selectedPlaceId: UUID?
+    
+    // 添加图片相关属性
+    @Published var selectedImage: UIImage?
+    @Published var showImagePicker: Bool = false
+    @Published var showCamera: Bool = false
+    @Published var placeImages: [UUID: UIImage] = [:] // 存储每个地点的自定义图片
     
     private let placeUseCase: PlaceUseCase
     private let locationUseCase: LocationUseCase
@@ -47,6 +54,15 @@ class MapViewModel: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm"
         return formatter.string(from: date)
+    }
+    
+    // 添加图片管理方法
+    func setImageForPlace(_ image: UIImage, placeId: UUID) {
+        placeImages[placeId] = image
+    }
+    
+    func getImageForPlace(_ placeId: UUID) -> UIImage? {
+        return placeImages[placeId]
     }
     
     var selectedPlace: PlaceEntity? {
